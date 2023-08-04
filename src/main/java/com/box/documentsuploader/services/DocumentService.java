@@ -53,8 +53,8 @@ public class DocumentService {
                    } else{
                        document.setAccountId(1L);
                        document.setFileName(fileName);
-                       document.setHashSha256(algorithm.equals(SHA256)?SHA256:null);
-                       document.setHashSha512(algorithm.equals(SHA512)?SHA512:null);
+                       document.setHashSha256(algorithm.equals(SHA256)?hashFunction.apply(fileName,SHA256):null);
+                       document.setHashSha512(algorithm.equals(SHA512)?hashFunction.apply(fileName,SHA512):null);
                        document.setAccountId(accountId);
                    }
                    return document;
