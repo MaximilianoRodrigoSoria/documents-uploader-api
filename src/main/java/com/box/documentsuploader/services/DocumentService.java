@@ -48,6 +48,11 @@ public class DocumentService {
                    Document document = newDocument.get();
                    var doc = this.repository.findByAccountIdAndFileName(accountId,fileName);
                    if(doc.isPresent()){
+                       if (algorithm.equals(SHA256)) {
+                           doc.get().setHashSha256(hashFunction.apply(fileName, SHA256));
+                       } else {
+                           doc.get().setHashSha512(hashFunction.apply(fileName, SHA512));
+                       }
                        doc.get().setLastUpload(new Date());
                        document = doc.get();
                    } else{
