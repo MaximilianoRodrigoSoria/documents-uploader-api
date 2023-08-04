@@ -3,6 +3,8 @@ package com.box.documentsuploader.services;
 
 import com.box.documentsuploader.api.handler.errors.AlgorithmNotFoundException;
 import com.box.documentsuploader.api.handler.errors.SaveDocumentException;
+import com.box.documentsuploader.config.SecurityConfig;
+import com.box.documentsuploader.domain.documents.AppUserRepository;
 import com.box.documentsuploader.domain.dtos.DocumentDTO;
 import com.box.documentsuploader.domain.dtos.DocumentResponse;
 import com.box.documentsuploader.domain.dtos.DocumentsResponse;
@@ -12,6 +14,8 @@ import com.google.common.hash.Hashing;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,11 +38,14 @@ public class DocumentService {
     private final static String SHA256 = "SHA-256";
     private final static String SHA512 = "SHA-512";
 
-    private DocumentRepository repository;;
+    private DocumentRepository repository;
+
+    private AppUserRepository userRepository;
 
     public DocumentsResponse saveFiles(Set<MultipartFile> files, String algorithm) {
        Set<DocumentDTO> documents = new HashSet<>();
-       Long accountId = 3L;
+       Long accountId = this.getAccountId();
+
        if(!algorithm.equals(SHA512) && !algorithm.equals(SHA256)) {
            throw new AlgorithmNotFoundException("El parámetro ‘hash’ solo puede ser ‘SHA-256’ o ‘SHA-512’", PATH);
        }
@@ -88,7 +95,7 @@ public class DocumentService {
         if(!algorithm.equals(SHA512) && !algorithm.equals(SHA256)) {
             throw new AlgorithmNotFoundException("El parámetro ‘hash’ solo puede ser ‘SHA-256’ o ‘SHA-512’", PATH);
         }
-        Long userAccount = 1L;
+        Long userAccount = this.getAccountId();
         String sha256 = algorithm.equals(SHA256)?hash:"";
         String sha512 = algorithm.equals(SHA512)?hash:"";
         var document = repository.findDocumentByAccountIdAndHashSha256OrHashSha512(userAccount,sha256,sha512);
@@ -96,7 +103,7 @@ public class DocumentService {
     }
 
     public Set<DocumentResponse> findAll() {
-        Long accountId = 1L;
+        Long accountId = this.getAccountId();
         var documentsResponse = new HashSet<DocumentResponse>();
         var documents = repository.findDocumentByAccountId(accountId);
         if (documents.isPresent()) {
@@ -126,5 +133,14 @@ public class DocumentService {
     };
 
     static Supplier<Document> newDocument = Document::new;
+
+
+    private Long getAccountId(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        var account = userRepository.findByUsername(username).get();
+        return account.getAccountId();
+
+    }
 
 }

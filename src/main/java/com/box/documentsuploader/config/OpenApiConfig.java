@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "Files API",
+                title = "Documents Uploader API",
                 version = "1.0",
-                description = "Documentation for endpoints in Files API")
+                description = "Documentation for endpoints in Document Uploader API")
 )
 public class OpenApiConfig {
 }
